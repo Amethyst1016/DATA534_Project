@@ -32,13 +32,21 @@ def rescale(x1, x2):
 # Get data from csv file
 cpi = pd.read_csv('cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
 unemployment = pd.read_csv('unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
-gdp = pd.read_csv('gdp.csv') # per quarter from 1947-01-01 to 2021-07-01, total 303 observations
+gdp = pd.read_csv('gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
 fundrate = pd.read_csv('fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
 retail = pd.read_csv('retail.csv') # per month from 1992-01-01 to 2022-12-01, total 372 observations
 durables = pd.read_csv('durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
 SP500 = pd.read_csv('SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
 
 # Data wrangling
+
+# SP500
+# Convert the 'Date' column to the 'Y-M' format
+SP500['date'] = pd.to_datetime(SP500['Date']).dt.to_period('M')
+# Calculate the average value for each month for column 'Close' to new column 'Close_by_month'
+SP500 = SP500.groupby('date').mean().rename(columns={'Close': 'Close_by_month'})
+# per month from 2016-01 to 2023-01, total 85 observations
+
 
 
 
