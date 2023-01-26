@@ -33,7 +33,7 @@ def rescale(x1, x2):
 cpi = pd.read_csv('cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
 unemployment = pd.read_csv('unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
 gdp = pd.read_csv('gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
-fundrate = pd.read_csv('fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
+fund_rate = pd.read_csv('fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
 retail = pd.read_csv('retail.csv') # per month from 1992-01-01 to 2022-12-01, total 372 observations
 durables = pd.read_csv('durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
 SP500 = pd.read_csv('SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
@@ -44,8 +44,93 @@ SP500 = pd.read_csv('SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 
 # Convert the 'Date' column to the 'Y-M' format
 SP500['date'] = pd.to_datetime(SP500['Date']).dt.to_period('M')
 # Calculate the average value for each month for column 'Close' to new column 'Close_by_month'
-SP500 = SP500.groupby('date').mean().rename(columns={'Close': 'Close_by_month'})
-# per month from 2016-01 to 2023-01, total 85 observations
+SP500 = SP500.groupby('date').mean()
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+SP500 = SP500['2016-01':'2022-07']
+# per month from 2016-01 to 2022-07, total 79 observations
+
+# CPI
+# Drop the first column 'Unnamed: 0'
+cpi = cpi.drop(columns=['Unnamed: 0'])
+# Convert the 'date' column to the 'Y-M' format
+cpi['date'] = pd.to_datetime(cpi['date']).dt.to_period('M')
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+cpi.set_index('date', inplace=True)
+cpi = cpi['2022-07':'2016-01']
+cpi = cpi.sort_index(ascending=True)
+# Rename the column 'value' to 'CPI'
+cpi.rename(columns={'value': 'CPI'}, inplace=True)
+# per month from 2016-01 to 2022-07, total 79 observations
+
+# unemployment
+# Drop the first column 'Unnamed: 0'
+unemployment = unemployment.drop(columns=['Unnamed: 0'])
+# Convert the 'date' column to the 'Y-M' format
+unemployment['date'] = pd.to_datetime(unemployment['date']).dt.to_period('M')
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+unemployment.set_index('date', inplace=True)
+unemployment = unemployment['2022-07':'2016-01']
+unemployment = unemployment.sort_index(ascending=True)
+# Rename the column 'value' to 'Unemployment'
+unemployment.rename(columns={'value': 'Unemployment'}, inplace=True)
+# per month from 2016-01 to 2022-07, total 79 observations
+
+# gdp
+# Drop the first column 'Unnamed: 0'
+gdp = gdp.drop(columns=['Unnamed: 0'])
+# Convert the 'date' column to the 'Y-M' format
+gdp['date'] = pd.to_datetime(gdp['date']).dt.to_period('M')
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+gdp.set_index('date', inplace=True)
+gdp = gdp['2022-07':'2016-01']
+gdp = gdp.sort_index(ascending=True)
+# Rename the column 'value' to 'GDP'
+gdp.rename(columns={'value': 'GDP'}, inplace=True)
+# per quarter from 2016-01 to 2022-07, total 27 observations
+
+# fund_rate
+# Drop the first column 'Unnamed: 0'
+fund_rate = fund_rate.drop(columns=['Unnamed: 0'])
+# Convert the 'date' column to the 'Y-M' format
+fund_rate['date'] = pd.to_datetime(fund_rate['date']).dt.to_period('M')
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+fund_rate.set_index('date', inplace=True)
+fund_rate = fund_rate['2022-07':'2016-01']
+fund_rate = fund_rate.sort_index(ascending=True)
+# Rename the column 'value' to 'Fund_rate'
+fund_rate.rename(columns={'value': 'Fund_rate'}, inplace=True)
+# per month from 2016-01 to 2022-07, total 79 observations
+
+# retail
+# Drop the first column 'Unnamed: 0'
+retail = retail.drop(columns=['Unnamed: 0'])
+# Convert the 'date' column to the 'Y-M' format
+retail['date'] = pd.to_datetime(retail['date']).dt.to_period('M')
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+retail.set_index('date', inplace=True)
+retail = retail['2022-07':'2016-01']
+retail = retail.sort_index(ascending=True)
+# Rename the column 'value' to 'Retail'
+retail.rename(columns={'value': 'Retail'}, inplace=True)
+# per month from 2016-01 to 2022-07, total 79 observations
+
+# durables
+# Drop the first column 'Unnamed: 0'
+durables = durables.drop(columns=['Unnamed: 0'])
+# Convert the 'date' column to the 'Y-M' format
+durables['date'] = pd.to_datetime(durables['date']).dt.to_period('M')
+# Subset the DataFrame with dates between 2016-01 and 2022-07
+durables.set_index('date', inplace=True)
+durables = durables['2022-07':'2016-01']
+durables = durables.sort_index(ascending=True)
+# Rename the column 'value' to 'Durables'
+durables.rename(columns={'value': 'Durables'}, inplace=True)
+# per month from 2016-01 to 2022-07, total 79 observations
+
+# Merge all dataframes
+df = pd.concat([SP500, cpi, unemployment, gdp, fund_rate, retail, durables], axis=1)
+df
+
 
 
 
