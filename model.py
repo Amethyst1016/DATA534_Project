@@ -1,4 +1,3 @@
-
 import math
 import pylab
 import random
@@ -21,10 +20,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-
-
-#%%
-
+import altair as alt
 
 def get_folds(n, K):
     ### Get the appropriate number of fold labels
@@ -34,17 +30,29 @@ def get_folds(n, K):
     random.shuffle(fold_ids)
     return fold_ids
 
+def drop_unnamed(df):
+    # Drop the column 'Unnamed: 0'
+    df.drop(['Unnamed: 0'], axis=1, inplace=True)
 
-
-def rescale(x1, x2):
-    for col in range(x1.shape[1]):
-        a = np.min(x2[:, col])
-        b = np.max(x2[:, col])
-        x1[:, col] = (x1[:, col] - a) / (b - a)
-    return x1
-
-
-# Get data from csv file
+def format_date(df):
+    # Convert the 'date' column to the 'Y-M' format and set as index
+    df['date'] = pd.to_datetime(df['date']).dt.to_period('M')
+    df.set_index('date', inplace=True)
+    
+def df_subset(df, name):
+    # Subset the DataFrame based on dates
+    if name == 'GDP':
+        idx = df['2015-10':].index
+    else:
+        idx = df['2015-12':].index
+    df.drop(idx, inplace=True)
+    df.sort_index(ascending=True, inplace=True)
+    
+def df_rename(df, name):
+    # Rename column
+    df.rename(columns={'value': name}, inplace=True)
+    
+### Read data
 cpi = pd.read_csv('data/cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
 unemployment = pd.read_csv('data/unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
 gdp = pd.read_csv('data/gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
@@ -53,11 +61,17 @@ retail = pd.read_csv('data/retail.csv') # per month from 1992-01-01 to 2022-12-0
 durables = pd.read_csv('data/durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
 SP500 = pd.read_csv('data/SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
 
-########## Data wrangling
+### Data Wrangling
+for df, name in zip([cpi, unemployment, gdp, fund_rate, durables, retail],
+                   ['CPI', 'Unemployment', 'GDP', 'Fund_rate', 'Durables', 'Retail']):
+    drop_unnamed(df)
+    format_date(df)
+    df_subset(df, name)
+    df_rename(df, name)
 
-# SP500
-# Convert the 'Date' column to the 'Y-M' format
-SP500['date'] = pd.to_datetime(SP500['Date']).dt.to_period('M')
+# SP500 is a special one
+SP500 = SP500.rename({'Date':'date'}, axis=1)
+format_date(SP500)
 # Calculate the average value for each month for column 'Close'
 SP500 = SP500.groupby('date').mean()
 # Subset the DataFrame with dates between 2016-01 and 2022-12
@@ -66,131 +80,39 @@ SP500 = SP500['2016-01':'2022-12']
 SP500 = SP500[['Close']]
 # Rename the column 'Close' to 'SP500'
 SP500.rename(columns={'Close': 'SP500'}, inplace=True)
-# per month from 2016-01 to 2022-12, total 84 observations
 
-# CPI
-# Drop the first column 'Unnamed: 0'
-cpi = cpi.drop(columns=['Unnamed: 0'])
-# Convert the 'date' column to the 'Y-M' format
-cpi['date'] = pd.to_datetime(cpi['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-12
-cpi.set_index('date', inplace=True)
-cpi = cpi['2022-12':'2016-01']
-cpi = cpi.sort_index(ascending=True)
-# Rename the column 'value' to 'CPI'
-cpi.rename(columns={'value': 'CPI'}, inplace=True)
-# per month from 2016-01 to 2022-12, total 84 observations
-
-# unemployment
-# Drop the first column 'Unnamed: 0'
-unemployment = unemployment.drop(columns=['Unnamed: 0'])
-# Convert the 'date' column to the 'Y-M' format
-unemployment['date'] = pd.to_datetime(unemployment['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-12
-unemployment.set_index('date', inplace=True)
-unemployment = unemployment['2022-12':'2016-01']
-unemployment = unemployment.sort_index(ascending=True)
-# Rename the column 'value' to 'Unemployment'
-unemployment.rename(columns={'value': 'Unemployment'}, inplace=True)
-# per month from 2016-01 to 2022-12, total 84 observations
-
-# gdp
-# Drop the first column 'Unnamed: 0'
-gdp = gdp.drop(columns=['Unnamed: 0'])
-# Convert the 'date' column to the 'Y-M' format
-gdp['date'] = pd.to_datetime(gdp['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-07
-gdp.set_index('date', inplace=True)
-gdp = gdp['2022-07':'2016-01']
-gdp = gdp.sort_index(ascending=True)
-# Rename the column 'value' to 'GDP'
-gdp.rename(columns={'value': 'GDP'}, inplace=True)
-# per quarter from 2016-01 to 2022-07, total 27 observations
-
-# fund_rate
-# Drop the first column 'Unnamed: 0'
-fund_rate = fund_rate.drop(columns=['Unnamed: 0'])
-# Convert the 'date' column to the 'Y-M' format
-fund_rate['date'] = pd.to_datetime(fund_rate['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-12
-fund_rate.set_index('date', inplace=True)
-fund_rate = fund_rate['2022-12':'2016-01']
-fund_rate = fund_rate.sort_index(ascending=True)
-# Rename the column 'value' to 'Fund_rate'
-fund_rate.rename(columns={'value': 'Fund_rate'}, inplace=True)
-# per month from 2016-01 to 2022-12, total 84 observations
-
-# retail
-# Drop the first column 'Unnamed: 0'
-retail = retail.drop(columns=['Unnamed: 0'])
-# Convert the 'date' column to the 'Y-M' format
-retail['date'] = pd.to_datetime(retail['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-12
-retail.set_index('date', inplace=True)
-retail = retail['2022-12':'2016-01']
-retail = retail.sort_index(ascending=True)
-# Rename the column 'value' to 'Retail'
-retail.rename(columns={'value': 'Retail'}, inplace=True)
-# per month from 2016-01 to 2022-12, total 84 observations
-
-# durables
-# Drop the first column 'Unnamed: 0'
-durables = durables.drop(columns=['Unnamed: 0'])
-# Convert the 'date' column to the 'Y-M' format
-durables['date'] = pd.to_datetime(durables['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-07
-durables.set_index('date', inplace=True)
-durables = durables['2022-07':'2016-01']
-durables = durables.sort_index(ascending=True)
-# Rename the column 'value' to 'Durables'
-durables.rename(columns={'value': 'Durables'}, inplace=True)
-# per month from 2016-01 to 2022-07, total 79 observations
-
-# Merge all dataframes (exclude GDP for now)
 df = pd.concat([SP500, cpi, unemployment, fund_rate, retail], axis=1)
+df
 
-#%%
-
-########## Analysis of the data ##########
+### Analysis
 # Correlation matrix
 df.corr()
-#%%
 
-# Scatter plot
-for i in range(len(df.columns)):
-    for j in range(i+1, len(df.columns)):
-        col1 = df.columns[i]
-        col2 = df.columns[j]
-        sns.scatterplot(x=col1, y=col2, data=df)
-        plt.title(col1 + ' vs ' + col2)
-        plt.show()
-#%%
+# Scatter plots
+columns = np.asarray(df.columns)
+scatter = alt.Chart(df, height=150, width=150).mark_point(
+).encode(
+    alt.X(alt.repeat('column'), type = 'quantitative', scale=alt.Scale(zero=False), title=''),
+    alt.Y(alt.repeat('row'), type = 'quantitative', scale=alt.Scale(zero=False), title='')
+).repeat(
+    row = columns, column = columns
+)
 
-# Time series plot
-for column in df.columns:
-    df[column].plot()
-    plt.title(column)
-    plt.show()
+# Trend
+df_no_index = df.reset_index()
+df_no_index['date'] = df_no_index['date'].dt.to_timestamp().apply(lambda x: x.strftime('%Y-%m'))
+trend = alt.Chart(df_no_index, height=100, width=150).mark_line().encode(
+    alt.X('date:T'),
+    alt.Y(alt.repeat('repeat'), type = 'quantitative', scale=alt.Scale(zero=False))
+).repeat(
+    repeat = columns, columns = 3
+)
 
-#%%
-
-########## Data preprocessing ##########
-
-#### Fit time series cross-validation models
+### Data Preprocessing
+# Fit time series cross-validation models
 X = df.drop(columns='SP500')
 Y = df['SP500']
 tscv = TimeSeriesSplit(n_splits=10)
-# This allows you to split the data into training and test sets by specifying the number of splits,
-# and it ensures that the splits are done in a time-sensitive manner so that the training sets are
-# always before the test sets in time.
-
-# tscv.split(X) returns the indices of the training and test sets for each split
-# X.iloc[train_index] returns the training set for each split
-# X.iloc[test_index] returns the test set for each split
-# Y.iloc[train_index] returns the training set for each split
-# Y.iloc[test_index] returns the test set for each split
-
-
 for train_index, test_index in tscv.split(X):
     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
     Y_train, Y_test = Y.iloc[train_index], Y.iloc[test_index]
@@ -219,10 +141,9 @@ for train_index, test_index in tscv.split(X):
     KNN = KNeighborsRegressor().fit(X_train, Y_train)
     KNN_mse = mean_squared_error(Y_test, KNN.predict(X_test))
     print('KNN MSE: ', KNN_mse)
-
+    
     print('--------------------------------------')
-
-
+    
 # Make a scatter plot of the actual vs predicted values
 plt.scatter(Y_test, lm.predict(X_test))
 plt.title('Linear regression')
@@ -254,42 +175,10 @@ plt.xlabel('Actual')
 plt.ylabel('Predicted')
 plt.show()
 
-#%%
-# Make a time series plot of the actual vs predicted values
-plt.plot(Y_test, label='Actual')
-plt.plot(lm.predict(X_test), label='Predicted')
-plt.title('Linear regression')
-plt.legend()
-plt.show()
-#%%
-
-#### Make a table of MSE
-MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse]},
-                     index=['Linear Regression', 'Decision Tree', 'Random Forest',
-                            'Gradient Boosting', 'KNN'])
-MSE
-#%%
-#### Make a MSE plot
-MSE.plot(kind='bar')
-plt.title('MSE of different models')
-plt.show()
-
-#%%
-### Make a relative MSE plot
-MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
-MSE.plot(kind='bar', y='Relative MSE')
-plt.title('Relative MSE of different models')
-plt.show()
-
-
-#%%
-
 #### Fit an ARIMA (AutoRegressive Integrated Moving Average) model
-
 # Split the data into training and testing sets
 SP500_train = SP500[:'2021-12']
 SP500_test = SP500['2022-01':]
-
 # fit ARIMA model, specifying the order of the model
 ARIMA_model = ARIMA(SP500_train, order=(1, 1, 1))
 ARIMA_model_fit = ARIMA_model.fit()
@@ -305,10 +194,6 @@ plt.title('ARIMA')
 plt.xlabel('Actual')
 plt.ylabel('Predicted')
 plt.show()
-#%%
-
-
-#%%
 
 # fit Auto ARIMA model, order is automatically selected
 auto_arima_model = auto_arima(SP500_train, start_p=1, start_q=1,
@@ -324,8 +209,6 @@ print(auto_arima_model.summary())
 # Make predictions on the test set
 auto_arima_predict = auto_arima_model.predict(n_periods=len(SP500_test))
 auto_arima_mse = mean_squared_error(SP500_test, auto_arima_predict)
-auto_arima_mse
-#%%
 
 # Make a scatter plot of the actual vs predicted values
 plt.scatter(SP500_test, auto_arima_predict)
@@ -334,24 +217,17 @@ plt.xlabel('Actual')
 plt.ylabel('Predicted')
 plt.show()
 
-
-#%%
-#### Make a table of MSE adding ARIMA and Auto ARIMA models
+# Make a table of MSE adding ARIMA and Auto ARIMA models
 MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse, arima_mse, auto_arima_mse]},
                         index=['Linear Regression', 'Decision Tree', 'Random Forest',
                                  'Gradient Boosting', 'KNN', 'ARIMA', 'Auto ARIMA'])
-MSE
-#%%
-#### Make a MSE plot
+# Make a MSE plot
 MSE.plot(kind='bar')
 plt.title('MSE of different models')
 plt.show()
 
-#%%
-### Make a relative MSE plot
+# Make a relative MSE plot
 MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
 MSE.plot(kind='bar', y='Relative MSE')
 plt.title('Relative MSE of different models')
 plt.show()
-
-#%%
