@@ -120,60 +120,58 @@ for train_index, test_index in tscv.split(X):
     # Linear regression
     lm = sm.OLS(Y_train, X_train).fit()
     lm_mse = mean_squared_error(Y_test, lm.predict(X_test))
-    print('Linear regression MSE: ', lm_mse)
+    #print('Linear regression MSE: ', lm_mse)
 
     # Decision tree
     Tree = DecisionTreeRegressor().fit(X_train, Y_train)
     Tree_mse = mean_squared_error(Y_test, Tree.predict(X_test))
-    print('Decision tree MSE: ', Tree_mse)
+    #print('Decision tree MSE: ', Tree_mse)
 
     # Random forest
     RF = RandomForestRegressor().fit(X_train, Y_train)
     RF_mse = mean_squared_error(Y_test, RF.predict(X_test))
-    print('Random forest MSE: ', RF_mse)
+    #print('Random forest MSE: ', RF_mse)
 
     # Gradient boosting
     GB = GradientBoostingRegressor().fit(X_train, Y_train)
     GB_mse = mean_squared_error(Y_test, GB.predict(X_test))
-    print('Gradient boosting MSE: ', GB_mse)
+    #print('Gradient boosting MSE: ', GB_mse)
 
     # KNN
     KNN = KNeighborsRegressor().fit(X_train, Y_train)
     KNN_mse = mean_squared_error(Y_test, KNN.predict(X_test))
-    print('KNN MSE: ', KNN_mse)
+    #print('KNN MSE: ', KNN_mse)
     
-    print('--------------------------------------')
+    #print('--------------------------------------')
     
 # Make a scatter plot of the actual vs predicted values
-plt.scatter(Y_test, lm.predict(X_test))
-plt.title('Linear regression')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.show()
+alt.Chart(pd.DataFrame({'Actual': Y_test, 'Linear regression': lm.predict(X_test)})).mark_point().encode(
+    alt.X('Actual', scale=alt.Scale(zero=False), title='Actual'),
+    alt.Y('Linear regression', scale=alt.Scale(zero=False), title='Predicted')
+).properties(title = 'Linear regression')
 
-plt.scatter(Y_test, Tree.predict(X_test))
-plt.title('Decision tree')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.show()
+alt.Chart(pd.DataFrame({'Actual': Y_test, 'Decision tree': Tree.predict(X_test)})).mark_point().encode(
+    alt.X('Actual', scale=alt.Scale(zero=False), title='Actual'),
+    alt.Y('Decision tree', scale=alt.Scale(zero=False), title='Predicted')
+).properties(title = 'Decision tree')
 
-plt.scatter(Y_test, RF.predict(X_test))
-plt.title('Random forest')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.show()
+alt.Chart(pd.DataFrame({'Actual': Y_test, 'Random forest': RF.predict(X_test)})).mark_point().encode(
+    alt.X('Actual', scale=alt.Scale(zero=False), title='Actual'),
+    alt.Y('Random forest', scale=alt.Scale(zero=False), title='Predicted')
+).properties(title = 'Random forest')
 
-plt.scatter(Y_test, GB.predict(X_test))
-plt.title('Gradient boosting')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.show()
+alt.Chart(pd.DataFrame({'Actual': Y_test, 'Gradient boosting': GB.predict(X_test)})).mark_point().encode(
+    alt.X('Actual', scale=alt.Scale(zero=False), title='Actual'),
+    alt.Y('Gradient boosting', scale=alt.Scale(zero=False), title='Predicted')
+).properties(title = 'Gradient boosting')
 
-plt.scatter(Y_test, KNN.predict(X_test))
-plt.title('KNN')
-plt.xlabel('Actual')
-plt.ylabel('Predicted')
-plt.show()
+alt.Chart(pd.DataFrame({'Actual': Y_test, 'KNN': KNN.predict(X_test)})).mark_point().encode(
+    alt.X('Actual', scale=alt.Scale(zero=False), title='Actual'),
+    alt.Y('KNN', scale=alt.Scale(zero=False), title='Predicted')
+).properties(title = 'KNN')
+
+
+
 
 #### Fit an ARIMA (AutoRegressive Integrated Moving Average) model
 # Split the data into training and testing sets
@@ -231,3 +229,4 @@ MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
 MSE.plot(kind='bar', y='Relative MSE')
 plt.title('Relative MSE of different models')
 plt.show()
+#%%
