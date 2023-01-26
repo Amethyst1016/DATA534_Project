@@ -213,11 +213,6 @@ for train_index, test_index in tscv.split(X):
     GB_mse = mean_squared_error(Y_test, GB.predict(X_test))
     print('Gradient boosting MSE: ', GB_mse)
 
-    # Support vector machine
-    SVM = SVR().fit(X_train, Y_train)
-    SVM_mse = mean_squared_error(Y_test, SVM.predict(X_test))
-    print('Support vector machine MSE: ', SVM_mse)
-
     # KNN
     KNN = KNeighborsRegressor().fit(X_train, Y_train)
     KNN_mse = mean_squared_error(Y_test, KNN.predict(X_test))
@@ -226,9 +221,22 @@ for train_index, test_index in tscv.split(X):
     print('--------------------------------------')
 
 #### Make a table of MSE
-MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, SVM_mse, KNN_mse]},
+MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse]},
                      index=['Linear Regression', 'Decision Tree', 'Random Forest',
-                            'Gradient Boosting', 'Support Vector Machine', 'KNN'])
+                            'Gradient Boosting', 'KNN'])
 MSE
 #%%
+#### Make a MSE plot
+MSE.plot(kind='bar')
+plt.title('MSE of different models')
+plt.show()
 
+#%%
+### Make a relative MSE plot
+MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
+MSE.plot(kind='bar', y='Relative MSE')
+plt.title('Relative MSE of different models')
+plt.show()
+
+
+#%%
