@@ -182,15 +182,17 @@ ARIMA_model = ARIMA(SP500_train, order=(1, 1, 1))
 ARIMA_model_fit = ARIMA_model.fit()
 print(ARIMA_model_fit.summary())
 
-# make predictions
+# Make predictions on the test set
 arima_predict = ARIMA_model_fit.predict(start=len(SP500_train), end=len(SP500_train)+11, typ='levels')
+
+# Calculate the MSE
 arima_mse = mean_squared_error(SP500_test, arima_predict)
 
 # Make a scatter plot of the actual vs predicted values
 plt.scatter(SP500_test, arima_predict)
-plt.title('ARIMA')
 plt.xlabel('Actual')
 plt.ylabel('Predicted')
+plt.title('ARIMA')
 plt.show()
 
 # fit Auto ARIMA model, order is automatically selected
@@ -206,27 +208,41 @@ print(auto_arima_model.summary())
 
 # Make predictions on the test set
 auto_arima_predict = auto_arima_model.predict(n_periods=len(SP500_test))
+
+# Calculate the MSE
 auto_arima_mse = mean_squared_error(SP500_test, auto_arima_predict)
 
 # Make a scatter plot of the actual vs predicted values
 plt.scatter(SP500_test, auto_arima_predict)
-plt.title('Auto ARIMA')
 plt.xlabel('Actual')
 plt.ylabel('Predicted')
+plt.title('Auto ARIMA')
 plt.show()
+
 
 # Make a table of MSE adding ARIMA and Auto ARIMA models
 MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse, arima_mse, auto_arima_mse]},
                         index=['Linear Regression', 'Decision Tree', 'Random Forest',
                                  'Gradient Boosting', 'KNN', 'ARIMA', 'Auto ARIMA'])
+
+# Convert index to a column
+MSE.reset_index(inplace=True)
+MSE.rename(columns={'index': 'Model'}, inplace=True)
+
 # Make a MSE plot
-MSE.plot(kind='bar')
-plt.title('MSE of different models')
-plt.show()
+alt.Chart(MSE).mark_bar().encode(
+    alt.X('Model', sort='-y'),
+    alt.Y('MSE')
+).properties(title = 'MSE of different models', width = 500)
+
+
 
 # Make a relative MSE plot
 MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
-MSE.plot(kind='bar', y='Relative MSE')
-plt.title('Relative MSE of different models')
-plt.show()
+alt.Chart(MSE).mark_bar().encode(
+    alt.X('Model', sort='-y'),
+    alt.Y('Relative MSE')
+).properties(title = 'Relative MSE of different models', width = 500)
+
+
 #%%
