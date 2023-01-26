@@ -231,7 +231,7 @@ MSE.rename(columns={'index': 'Model'}, inplace=True)
 
 # Make a MSE plot
 alt.Chart(MSE).mark_bar().encode(
-    alt.X('Model', sort='y'),
+    alt.X('Model', sort='-y'),
     alt.Y('MSE')
 ).properties(title = 'MSE of different models', width = 500)
 
@@ -240,7 +240,7 @@ alt.Chart(MSE).mark_bar().encode(
 # Make a relative MSE plot
 MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
 alt.Chart(MSE).mark_bar().encode(
-    alt.X('Model', sort='y'),
+    alt.X('Model', sort='-y'),
     alt.Y('Relative MSE')
 ).properties(title = 'Relative MSE of different models', width = 500)
 
