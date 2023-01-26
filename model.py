@@ -9,6 +9,7 @@ import seaborn as sns
 import scipy.stats as stats
 from sklearn.svm import SVR
 import statsmodels.api as sm
+from pmdarima import auto_arima
 import matplotlib.pyplot as plt
 from statsmodels.tsa.arima.model import ARIMA
 from sklearn.neural_network import MLPRegressor
@@ -221,6 +222,47 @@ for train_index, test_index in tscv.split(X):
 
     print('--------------------------------------')
 
+
+# Make a scatter plot of the actual vs predicted values
+plt.scatter(Y_test, lm.predict(X_test))
+plt.title('Linear regression')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+
+plt.scatter(Y_test, Tree.predict(X_test))
+plt.title('Decision tree')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+
+plt.scatter(Y_test, RF.predict(X_test))
+plt.title('Random forest')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+
+plt.scatter(Y_test, GB.predict(X_test))
+plt.title('Gradient boosting')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+
+plt.scatter(Y_test, KNN.predict(X_test))
+plt.title('KNN')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+
+#%%
+# Make a time series plot of the actual vs predicted values
+plt.plot(Y_test, label='Actual')
+plt.plot(lm.predict(X_test), label='Predicted')
+plt.title('Linear regression')
+plt.legend()
+plt.show()
+#%%
+
 #### Make a table of MSE
 MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse]},
                      index=['Linear Regression', 'Decision Tree', 'Random Forest',
@@ -241,9 +283,75 @@ plt.show()
 
 
 #%%
+
 #### Fit an ARIMA (AutoRegressive Integrated Moving Average) model
 
-model = ARIMA(SP500, order=(1, 1, 1))
-model_fit = model.fit()
-print(model_fit.summary())
+# Split the data into training and testing sets
+SP500_train = SP500[:'2021-12']
+SP500_test = SP500['2022-01':]
+
+# fit ARIMA model, specifying the order of the model
+ARIMA_model = ARIMA(SP500_train, order=(1, 1, 1))
+ARIMA_model_fit = ARIMA_model.fit()
+print(ARIMA_model_fit.summary())
+
+# make predictions
+arima_predict = ARIMA_model_fit.predict(start=len(SP500_train), end=len(SP500_train)+11, typ='levels')
+arima_mse = mean_squared_error(SP500_test, arima_predict)
+
+# Make a scatter plot of the actual vs predicted values
+plt.scatter(SP500_test, arima_predict)
+plt.title('ARIMA')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+#%%
+
+
+#%%
+
+# fit Auto ARIMA model, order is automatically selected
+auto_arima_model = auto_arima(SP500_train, start_p=1, start_q=1,
+                            max_p=3, max_q=3, m=12,
+                            start_P=0, seasonal=True,
+                            d=1, D=1, trace=True,
+                            error_action='ignore',
+                            suppress_warnings=True,
+                            stepwise=True)
+# Print model summary
+print(auto_arima_model.summary())
+
+# Make predictions on the test set
+auto_arima_predict = auto_arima_model.predict(n_periods=len(SP500_test))
+auto_arima_mse = mean_squared_error(SP500_test, auto_arima_predict)
+auto_arima_mse
+#%%
+
+# Make a scatter plot of the actual vs predicted values
+plt.scatter(SP500_test, auto_arima_predict)
+plt.title('Auto ARIMA')
+plt.xlabel('Actual')
+plt.ylabel('Predicted')
+plt.show()
+
+
+#%%
+#### Make a table of MSE adding ARIMA and Auto ARIMA models
+MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse, arima_mse, auto_arima_mse]},
+                        index=['Linear Regression', 'Decision Tree', 'Random Forest',
+                                 'Gradient Boosting', 'KNN', 'ARIMA', 'Auto ARIMA'])
+MSE
+#%%
+#### Make a MSE plot
+MSE.plot(kind='bar')
+plt.title('MSE of different models')
+plt.show()
+
+#%%
+### Make a relative MSE plot
+MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
+MSE.plot(kind='bar', y='Relative MSE')
+plt.title('Relative MSE of different models')
+plt.show()
+
 #%%
