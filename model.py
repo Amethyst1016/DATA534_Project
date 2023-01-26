@@ -42,13 +42,13 @@ def rescale(x1, x2):
 
 
 # Get data from csv file
-cpi = pd.read_csv('cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
-unemployment = pd.read_csv('unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
-gdp = pd.read_csv('gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
-fund_rate = pd.read_csv('fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
-retail = pd.read_csv('retail.csv') # per month from 1992-01-01 to 2022-12-01, total 372 observations
-durables = pd.read_csv('durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
-SP500 = pd.read_csv('SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
+cpi = pd.read_csv('/cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
+unemployment = pd.read_csv('/unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
+gdp = pd.read_csv('/gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
+fund_rate = pd.read_csv(/'fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
+retail = pd.read_csv('/retail.csv') # per month from 1992-01-01 to 2022-12-01, total 372 observations
+durables = pd.read_csv('/durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
+SP500 = pd.read_csv('/SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
 
 ########## Data wrangling
 
