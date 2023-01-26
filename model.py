@@ -1,16 +1,26 @@
 
 import math
+import pylab
 import random
 import requests
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import scipy.stats as stats
+from sklearn.svm import SVR
+import statsmodels.api as sm
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import AdaBoostRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
+
+#%%
 
 
 def get_folds(n, K):
@@ -161,9 +171,70 @@ for column in df.columns:
     plt.show()
 
 #%%
-# Fit a linear regression model
+#### Fit a linear regression model
+X = df.drop(columns=['SP500'])
+Y = df['SP500']
+# create a LinearRegression object and fit the model to the data
+# Get the model summary
+lm = sm.OLS(Y, X).fit()
+# Get the model summary
+lm.summary()
+# Plot the residuals
+sns.residplot(lm.predict(X), Y)
+#%%
+# Visualize the residuals and check the normality assumptions.
+stats.probplot(lm.resid, dist="norm", plot=pylab)
+pylab.show()
+# Check MSE
+lm_mse = mean_squared_error(Y, lm.predict(X))
+lm_mse
 
+#%%
+#### Fit a decision tree model
+Tree = DecisionTreeRegressor().fit(X, Y)
+# Plot the residuals
+sns.residplot(Tree.predict(X), Y)
+# Check MSE
+Tree_mse = mean_squared_error(Y, Tree.predict(X))
+Tree_mse
 
+#%%
+#### Fit a random forest model
+RF = RandomForestRegressor().fit(X, Y)
+# Plot the residuals
+sns.residplot(RF.predict(X), Y)
+# Check MSE
+RF_mse = mean_squared_error(Y, RF.predict(X))
+RF_mse
+
+#%%
+#### Fit a gradient boosting model
+GB = GradientBoostingRegressor().fit(X, Y)
+# Plot the residuals
+sns.residplot(GB.predict(X), Y)
+# Check MSE
+GB_mse = mean_squared_error(Y, GB.predict(X))
+GB_mse
 
 
 #%%
+#### Fit a neural network model
+NN = MLPRegressor().fit(X, Y)
+# Plot the residuals
+sns.residplot(NN.predict(X), Y)
+# Check MSE
+NN_mse = mean_squared_error(Y, NN.predict(X))
+NN_mse
+
+#%%
+#### Fit a support vector machine model
+SVM = SVR().fit(X, Y)
+# Plot the residuals
+sns.residplot(SVM.predict(X), Y)
+# Check MSE
+SVM_mse = mean_squared_error(Y, SVM.predict(X))
+SVM_mse
+
+#%%
+
+
