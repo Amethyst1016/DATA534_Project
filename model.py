@@ -10,6 +10,7 @@ import scipy.stats as stats
 from sklearn.svm import SVR
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
+from statsmodels.tsa.arima.model import ARIMA
 from sklearn.neural_network import MLPRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
@@ -239,4 +240,10 @@ plt.title('Relative MSE of different models')
 plt.show()
 
 
+#%%
+#### Fit an ARIMA (AutoRegressive Integrated Moving Average) model
+
+model = ARIMA(SP500, order=(1, 1, 1))
+model_fit = model.fit()
+print(model_fit.summary())
 #%%
