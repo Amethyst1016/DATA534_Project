@@ -10,9 +10,10 @@ import scipy.stats as stats
 from sklearn.svm import SVR
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
-from sklearn.ensemble import AdaBoostRegressor
 from sklearn.neural_network import MLPRegressor
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, r2_score
@@ -42,13 +43,13 @@ def rescale(x1, x2):
 
 
 # Get data from csv file
-cpi = pd.read_csv('/cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
-unemployment = pd.read_csv('/unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
-gdp = pd.read_csv('/gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
-fund_rate = pd.read_csv(/'fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
-retail = pd.read_csv('/retail.csv') # per month from 1992-01-01 to 2022-12-01, total 372 observations
-durables = pd.read_csv('/durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
-SP500 = pd.read_csv('/SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
+cpi = pd.read_csv('data/cpi.csv') # per month from 1913-01-01 to 2022-12-01, total 1320 observations
+unemployment = pd.read_csv('data/unemployment.csv') # per month from 1948-01-01 to 2022-12-01, total 900 observations
+gdp = pd.read_csv('data/gdp.csv') # per quarter from 1947-01-01 to 2022-07-01, total 303 observations
+fund_rate = pd.read_csv('data/fundrate.csv') # per month from 1954-07-01 to 2022-12-01, total 822 observations
+retail = pd.read_csv('data/retail.csv') # per month from 1992-01-01 to 2022-12-01, total 372 observations
+durables = pd.read_csv('data/durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
+SP500 = pd.read_csv('data/SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
 
 ########## Data wrangling
 
@@ -148,8 +149,7 @@ df = pd.concat([SP500, cpi, unemployment, fund_rate, retail], axis=1)
 
 #%%
 
-########## Analysis
-
+########## Analysis of the data ##########
 # Correlation matrix
 df.corr()
 #%%
@@ -172,76 +172,71 @@ for column in df.columns:
 
 #%%
 
-# Split the data into training and testing sets
-df_train = df[:'2021-01']
-df_test = df['2021-02':]
-len(df), len(df_train), len(df_test)
-#%%
+########## Data preprocessing ##########
 
-#### Fit a linear regression model
-X = df.drop(columns=['SP500'])
+#### Fit time series cross-validation models
+X = df.drop(columns='SP500')
 Y = df['SP500']
-# create a LinearRegression object and fit the model to the data
-# Get the model summary
-lm = sm.OLS(Y, X).fit()
-# Get the model summary
-lm.summary()
-# Plot the residuals
-sns.residplot(lm.predict(X), Y)
-#%%
-# Visualize the residuals and check the normality assumptions.
-stats.probplot(lm.resid, dist="norm", plot=pylab)
-pylab.show()
-# Check MSE
-lm_mse = mean_squared_error(Y, lm.predict(X))
-lm_mse
+tscv = TimeSeriesSplit(n_splits=10)
+# This allows you to split the data into training and test sets by specifying the number of splits,
+# and it ensures that the splits are done in a time-sensitive manner so that the training sets are
+# always before the test sets in time.
 
-#%%
-#### Fit a decision tree model
-Tree = DecisionTreeRegressor().fit(X, Y)
-# Plot the residuals
-sns.residplot(Tree.predict(X), Y)
-# Check MSE
-Tree_mse = mean_squared_error(Y, Tree.predict(X))
-Tree_mse
-
-#%%
-#### Fit a random forest model
-RF = RandomForestRegressor().fit(X, Y)
-# Plot the residuals
-sns.residplot(RF.predict(X), Y)
-# Check MSE
-RF_mse = mean_squared_error(Y, RF.predict(X))
-RF_mse
-
-#%%
-#### Fit a gradient boosting model
-GB = GradientBoostingRegressor().fit(X, Y)
-# Plot the residuals
-sns.residplot(GB.predict(X), Y)
-# Check MSE
-GB_mse = mean_squared_error(Y, GB.predict(X))
-GB_mse
+# tscv.split(X) returns the indices of the training and test sets for each split
+# X.iloc[train_index] returns the training set for each split
+# X.iloc[test_index] returns the test set for each split
+# Y.iloc[train_index] returns the training set for each split
+# Y.iloc[test_index] returns the test set for each split
 
 
-#%%
-#### Fit a neural network model
-NN = MLPRegressor().fit(X, Y)
-# Plot the residuals
-sns.residplot(NN.predict(X), Y)
-# Check MSE
-NN_mse = mean_squared_error(Y, NN.predict(X))
-NN_mse
+for train_index, test_index in tscv.split(X):
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    Y_train, Y_test = Y.iloc[train_index], Y.iloc[test_index]
 
+    # Linear regression
+    lm = sm.OLS(Y_train, X_train).fit()
+    lm_mse = mean_squared_error(Y_test, lm.predict(X_test))
+    print('Linear regression MSE: ', lm_mse)
+
+    # Decision tree
+    Tree = DecisionTreeRegressor().fit(X_train, Y_train)
+    Tree_mse = mean_squared_error(Y_test, Tree.predict(X_test))
+    print('Decision tree MSE: ', Tree_mse)
+
+    # Random forest
+    RF = RandomForestRegressor().fit(X_train, Y_train)
+    RF_mse = mean_squared_error(Y_test, RF.predict(X_test))
+    print('Random forest MSE: ', RF_mse)
+
+    # Gradient boosting
+    GB = GradientBoostingRegressor().fit(X_train, Y_train)
+    GB_mse = mean_squared_error(Y_test, GB.predict(X_test))
+    print('Gradient boosting MSE: ', GB_mse)
+
+    # KNN
+    KNN = KNeighborsRegressor().fit(X_train, Y_train)
+    KNN_mse = mean_squared_error(Y_test, KNN.predict(X_test))
+    print('KNN MSE: ', KNN_mse)
+
+    print('--------------------------------------')
+
+#### Make a table of MSE
+MSE = pd.DataFrame({'MSE': [lm_mse, Tree_mse, RF_mse, GB_mse, KNN_mse]},
+                     index=['Linear Regression', 'Decision Tree', 'Random Forest',
+                            'Gradient Boosting', 'KNN'])
+MSE
 #%%
-#### Fit a support vector machine model
-SVM = SVR().fit(X, Y)
-# Plot the residuals
-sns.residplot(SVM.predict(X), Y)
-# Check MSE
-SVM_mse = mean_squared_error(Y, SVM.predict(X))
-SVM_mse
+#### Make a MSE plot
+MSE.plot(kind='bar')
+plt.title('MSE of different models')
+plt.show()
 
 #%%
+### Make a relative MSE plot
+MSE['Relative MSE'] = MSE['MSE'] / MSE['MSE'].min()
+MSE.plot(kind='bar', y='Relative MSE')
+plt.title('Relative MSE of different models')
+plt.show()
 
 
+#%%
