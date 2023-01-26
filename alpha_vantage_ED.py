@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import time
 apikey = 'O6LFU5LE4ZVYXL1H'
+#%%
 
 def convert_js_to_df_monthly(data):
       df = pd.json_normalize(data['data'])
@@ -51,24 +52,34 @@ get_economic_indicators(api=apikey)
 
 #%%
 # Get data from URL
-#cpi_url = 'https://www.alphavantage.co/query?function=CPI&interval=monthly&apikey=O6LFU5LE4ZVYXL1H'
-#inflation_url = 'https://www.alphavantage.co/query?function=INFLATION&apikey=O6LFU5LE4ZVYXL1H'
-#unemployment_url = 'https://www.alphavantage.co/query?function=UNEMPLOYMENT&apikey=O6LFU5LE4ZVYXL1H'
+cpi_url = 'https://www.alphavantage.co/query?function=CPI&interval=monthly&apikey=O6LFU5LE4ZVYXL1H'
+inflation_url = 'https://www.alphavantage.co/query?function=INFLATION&apikey=O6LFU5LE4ZVYXL1H'
+unemployment_url = 'https://www.alphavantage.co/query?function=UNEMPLOYMENT&apikey=O6LFU5LE4ZVYXL1H'
+durables_url = 'https://www.alphavantage.co/query?function=DURABLES&apikey=O6LFU5LE4ZVYXL1H'
 
-#cpi_df = pd.read_json(cpi_url)
-#inflation_df = pd.read_json(inflation_url)
-#unemployment_df = pd.read_json(unemployment_url)
+cpi_df = pd.read_json(cpi_url)
+inflation_df = pd.read_json(inflation_url)
+unemployment_df = pd.read_json(unemployment_url)
+durables_df = pd.read_json(durables_url)
+#%%
+durables_url = 'https://www.alphavantage.co/query?function=DURABLES&apikey=O6LFU5LE4ZVYXL1H'
+durables_df = pd.read_json(durables_url)
+durables_df
+#%%
 
 # Extract date and value from data
-#cpi_df['date'] = cpi_df['data'].apply(lambda x: x['date'])
-#cpi_df['value'] = cpi_df['data'].apply(lambda x: x['value'])
-#cpi_df = cpi_df[['date', 'value']]
-#cpi_df
+cpi_df['date'] = cpi_df['data'].apply(lambda x: x['date'])
+cpi_df['value'] = cpi_df['data'].apply(lambda x: x['value'])
+cpi_df = cpi_df[['date', 'value']]
+cpi_df
 
-#inflation_df['date'] = inflation_df['data'].apply(lambda x: x['date'])
-#inflation_df['value'] = inflation_df['data'].apply(lambda x: x['value'])
-#inflation_df = inflation_df[['date', 'value']]
+inflation_df['date'] = inflation_df['data'].apply(lambda x: x['date'])
+inflation_df['value'] = inflation_df['data'].apply(lambda x: x['value'])
+inflation_df = inflation_df[['date', 'value']]
 
-#unemployment_df['date'] = unemployment_df['data'].apply(lambda x: x['date'])
-#unemployment_df['value'] = unemployment_df['data'].apply(lambda x: x['value'])
-#unemployment_df = unemployment_df[['date', 'value']]
+unemployment_df['date'] = unemployment_df['data'].apply(lambda x: x['date'])
+unemployment_df['value'] = unemployment_df['data'].apply(lambda x: x['value'])
+unemployment_df = unemployment_df[['date', 'value']]
+#%%
+
+

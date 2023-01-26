@@ -57,39 +57,39 @@ SP500 = pd.read_csv('SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 
 SP500['date'] = pd.to_datetime(SP500['Date']).dt.to_period('M')
 # Calculate the average value for each month for column 'Close'
 SP500 = SP500.groupby('date').mean()
-# Subset the DataFrame with dates between 2016-01 and 2022-07
-SP500 = SP500['2016-01':'2022-07']
+# Subset the DataFrame with dates between 2016-01 and 2022-12
+SP500 = SP500['2016-01':'2022-12']
 # Only keep the column 'Close'
 SP500 = SP500[['Close']]
 # Rename the column 'Close' to 'SP500'
 SP500.rename(columns={'Close': 'SP500'}, inplace=True)
-# per month from 2016-01 to 2022-07, total 79 observations
+# per month from 2016-01 to 2022-12, total 84 observations
 
 # CPI
 # Drop the first column 'Unnamed: 0'
 cpi = cpi.drop(columns=['Unnamed: 0'])
 # Convert the 'date' column to the 'Y-M' format
 cpi['date'] = pd.to_datetime(cpi['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-07
+# Subset the DataFrame with dates between 2016-01 and 2022-12
 cpi.set_index('date', inplace=True)
-cpi = cpi['2022-07':'2016-01']
+cpi = cpi['2022-12':'2016-01']
 cpi = cpi.sort_index(ascending=True)
 # Rename the column 'value' to 'CPI'
 cpi.rename(columns={'value': 'CPI'}, inplace=True)
-# per month from 2016-01 to 2022-07, total 79 observations
+# per month from 2016-01 to 2022-12, total 84 observations
 
 # unemployment
 # Drop the first column 'Unnamed: 0'
 unemployment = unemployment.drop(columns=['Unnamed: 0'])
 # Convert the 'date' column to the 'Y-M' format
 unemployment['date'] = pd.to_datetime(unemployment['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-07
+# Subset the DataFrame with dates between 2016-01 and 2022-12
 unemployment.set_index('date', inplace=True)
-unemployment = unemployment['2022-07':'2016-01']
+unemployment = unemployment['2022-12':'2016-01']
 unemployment = unemployment.sort_index(ascending=True)
 # Rename the column 'value' to 'Unemployment'
 unemployment.rename(columns={'value': 'Unemployment'}, inplace=True)
-# per month from 2016-01 to 2022-07, total 79 observations
+# per month from 2016-01 to 2022-12, total 84 observations
 
 # gdp
 # Drop the first column 'Unnamed: 0'
@@ -109,26 +109,26 @@ gdp.rename(columns={'value': 'GDP'}, inplace=True)
 fund_rate = fund_rate.drop(columns=['Unnamed: 0'])
 # Convert the 'date' column to the 'Y-M' format
 fund_rate['date'] = pd.to_datetime(fund_rate['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-07
+# Subset the DataFrame with dates between 2016-01 and 2022-12
 fund_rate.set_index('date', inplace=True)
-fund_rate = fund_rate['2022-07':'2016-01']
+fund_rate = fund_rate['2022-12':'2016-01']
 fund_rate = fund_rate.sort_index(ascending=True)
 # Rename the column 'value' to 'Fund_rate'
 fund_rate.rename(columns={'value': 'Fund_rate'}, inplace=True)
-# per month from 2016-01 to 2022-07, total 79 observations
+# per month from 2016-01 to 2022-12, total 84 observations
 
 # retail
 # Drop the first column 'Unnamed: 0'
 retail = retail.drop(columns=['Unnamed: 0'])
 # Convert the 'date' column to the 'Y-M' format
 retail['date'] = pd.to_datetime(retail['date']).dt.to_period('M')
-# Subset the DataFrame with dates between 2016-01 and 2022-07
+# Subset the DataFrame with dates between 2016-01 and 2022-12
 retail.set_index('date', inplace=True)
-retail = retail['2022-07':'2016-01']
+retail = retail['2022-12':'2016-01']
 retail = retail.sort_index(ascending=True)
 # Rename the column 'value' to 'Retail'
 retail.rename(columns={'value': 'Retail'}, inplace=True)
-# per month from 2016-01 to 2022-07, total 79 observations
+# per month from 2016-01 to 2022-12, total 84 observations
 
 # durables
 # Drop the first column 'Unnamed: 0'
@@ -144,7 +144,7 @@ durables.rename(columns={'value': 'Durables'}, inplace=True)
 # per month from 2016-01 to 2022-07, total 79 observations
 
 # Merge all dataframes (exclude GDP for now)
-df = pd.concat([SP500, cpi, unemployment, fund_rate, retail, durables], axis=1)
+df = pd.concat([SP500, cpi, unemployment, fund_rate, retail], axis=1)
 
 #%%
 
@@ -171,6 +171,13 @@ for column in df.columns:
     plt.show()
 
 #%%
+
+# Split the data into training and testing sets
+df_train = df[:'2021-01']
+df_test = df['2021-02':]
+len(df), len(df_train), len(df_test)
+#%%
+
 #### Fit a linear regression model
 X = df.drop(columns=['SP500'])
 Y = df['SP500']
