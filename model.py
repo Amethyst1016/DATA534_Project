@@ -4,6 +4,8 @@ import random
 import requests
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -38,15 +40,19 @@ retail = pd.read_csv('retail.csv') # per month from 1992-01-01 to 2022-12-01, to
 durables = pd.read_csv('durables.csv') # per month from 1992-02-01 to 2022-11-01, total 370 observations
 SP500 = pd.read_csv('SP500.csv') # per day from 2016-01-04 to 2023-01-13, total 1771 observations
 
-# Data wrangling
+########## Data wrangling
 
 # SP500
 # Convert the 'Date' column to the 'Y-M' format
 SP500['date'] = pd.to_datetime(SP500['Date']).dt.to_period('M')
-# Calculate the average value for each month for column 'Close' to new column 'Close_by_month'
+# Calculate the average value for each month for column 'Close'
 SP500 = SP500.groupby('date').mean()
 # Subset the DataFrame with dates between 2016-01 and 2022-07
 SP500 = SP500['2016-01':'2022-07']
+# Only keep the column 'Close'
+SP500 = SP500[['Close']]
+# Rename the column 'Close' to 'SP500'
+SP500.rename(columns={'Close': 'SP500'}, inplace=True)
 # per month from 2016-01 to 2022-07, total 79 observations
 
 # CPI
@@ -127,11 +133,35 @@ durables = durables.sort_index(ascending=True)
 durables.rename(columns={'value': 'Durables'}, inplace=True)
 # per month from 2016-01 to 2022-07, total 79 observations
 
-# Merge all dataframes
-df = pd.concat([SP500, cpi, unemployment, gdp, fund_rate, retail, durables], axis=1)
-df
+# Merge all dataframes (exclude GDP for now)
+df = pd.concat([SP500, cpi, unemployment, fund_rate, retail, durables], axis=1)
 
+#%%
 
+########## Analysis
+
+# Correlation matrix
+df.corr()
+#%%
+
+# Scatter plot
+for i in range(len(df.columns)):
+    for j in range(i+1, len(df.columns)):
+        col1 = df.columns[i]
+        col2 = df.columns[j]
+        sns.scatterplot(x=col1, y=col2, data=df)
+        plt.title(col1 + ' vs ' + col2)
+        plt.show()
+#%%
+
+# Time series plot
+for column in df.columns:
+    df[column].plot()
+    plt.title(column)
+    plt.show()
+
+#%%
+# Fit a linear regression model
 
 
 
