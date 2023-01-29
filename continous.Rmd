@@ -1,0 +1,198 @@
+---
+title: "Assignment2-571"
+author: "Lili Tang"
+date: "2022-12-13"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r}
+library(ggplot2)
+library(caret)
+library(randomForest)
+library(gbm)
+library(gclus)
+library(glmnet)
+library(tree)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(Hmisc)
+```
+
+
+
+
+
+```{r}
+df<-read.csv("df.csv", header=TRUE)
+df <- df[,1:8]
+df$date<- as.Date(df$date)
+#df$cpi <- as.integer(df$cpi)
+#df$unemployment <- as.integer(df$unemployment)
+#df$fund_rate <- as.integer(df$fund_rate)
+#df$gdp <- as.integer(df$gdp)
+#df$SP500<- as.integer(df$SP500)
+
+df1 <- df
+df <- df[,-1]
+#df$SP500_dalay <- df1[,8]
+#df <- df[,-8]
+df
+```
+
+```{r}
+model <- lm(SP500~.,data=df)
+summary(model)
+yhat <- predict(model,newdata=df)
+df1$yhat <- yhat
+
+```
+
+
+
+```{r}
+ggplot() +
+  geom_line(data = df1, aes(x = date, y =SP500), color = "blue") +
+  geom_line(data = df1, aes(x = date, y = yhat), color = "red")
+```
+
+
+## 1.Spliting Training and testing data 
+
+```{r results="hide"}
+# choose training and test data
+n <- nrow(df)
+dsindex <- sample(1:n, 0.8*n)
+dstrain <- df[dsindex, ]
+dstest <- df[-dsindex, ]
+```
+
+
+## 2.Linear model
+```{r}
+# linear model
+
+model <- lm(SP500~.,data=dstrain)
+summary(model)
+## Backwards elimination
+model.step.aic <- step(model) #AIC
+
+## calculate testing MSE
+yhat <- predict(model.step.aic ,newdata=dstest)
+lm_MSE <- round(mean((yhat-dstest$SP500)^2),3)
+lm_MSE
+
+```
+
+
+## 3.Tree
+
+```{r}
+# tree
+set.seed(571)
+bocl <- tree(SP500~., data=dstrain)
+plot(bocl)
+text(bocl)
+
+cv.bocl <- cv.tree(bocl,K=10)
+plot(cv.bocl, type="b")
+cv.bocl$size[which.min(cv.bocl$dev)]
+
+p.bocl <- prune.tree(bocl, best=6)
+plot(p.bocl)
+text(p.bocl, pretty=0)
+
+# MSE
+min(cv.bocl$dev/nrow(dstrain))
+## calculate testing MSE
+yhat <- predict(p.bocl,newdata=dstest)
+tree_MSE1 <- round(mean((yhat-dstest$SP500)^2),3)
+yhat <- predict(bocl,newdata=dstest)
+tree_MSE2<- round(mean((yhat-dstest$SP500)^2),3)
+
+
+tree_MSE <- min(tree_MSE1,tree_MSE2)
+tree_MSE
+
+```
+## 4.Random forest
+
+```{r}
+# random forest
+set.seed(571)
+bodyRF <- randomForest(SP500~., data=dstrain,importance=TRUE)
+bodyRF
+varImpPlot(bodyRF)
+
+## calculate testing MSE
+yhat <- predict(bodyRF,newdata=dstest)
+rf_MSE <- round(mean((yhat-dstest$SP500)^2),3)
+rf_MSE
+
+```
+
+## 5.Boosting
+
+```{r}
+# boosting
+set.seed(571)
+bodyboost <- gbm(SP500~., distribution="gaussian", data=dstrain, n.trees=5000, interaction.depth=5)
+
+## calculate testing MSE
+yhat <- predict(bodyboost,newdata=dstest,n.trees = 5000)
+boosting_MSE <- round(mean((yhat-dstest$SP500)^2),3)
+boosting_MSE
+
+```
+## 6.Lasso
+
+
+
+
+
+```{r}
+# lasso
+set.seed(571)
+x <- data.matrix(dstrain[-7])
+y <- dstrain$SP500
+t <- data.matrix(dstest[-7])
+grid <- exp(seq(5, -10, length=100))
+lasim <- cv.glmnet(x,y, alpha=1,lambda=grid) 
+plot(lasim$glmnet.fit, label=TRUE, xvar="lambda")
+plot(lasim)
+lammin <- lasim$lambda.min
+lasimmin <- glmnet(x,y,alpha = 1, lambda=lammin)
+coef(lasimmin)
+lam1se <- lasim$lambda.1se
+lalam1se<- glmnet(x,y,alpha = 1, lambda=lam1se)
+
+
+## calculate testing MSE
+yhat1  <- predict(lasimmin, newx=t)
+lasso_MSE1 <- round(mean((yhat1-dstest$SP500)^2),3)
+yhat2  <- predict(lalam1se, newx=t)
+lasso_MSE2 <- round(mean((yhat2-dstest$SP500)^2),3)
+lasso_MSE <- min(lasso_MSE1,lasso_MSE2)
+lasso_MSE
+
+
+
+```
+## 7.Comparison
+
+```{r}
+# comparison
+
+MSE <- c(lm_MSE,tree_MSE,rf_MSE,boosting_MSE,lasso_MSE)
+Type <- c("lm_MSE","tree_MSE","rf_MSE","boosting_MSE","lasso_MSE")
+data.frame(Type,MSE)[order(MSE),]
+
+```
+## 8.Conclusion
+
+

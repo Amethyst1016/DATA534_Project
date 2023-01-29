@@ -1,0 +1,93 @@
+---
+title: "Assignment2-571"
+author: "Lili Tang"
+date: "2022-12-13"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r}
+library(ggplot2)
+library(caret)
+library(randomForest)
+library(gbm)
+library(gclus)
+library(glmnet)
+library(tree)
+library(dplyr)
+library(arules)
+library(effects)
+```
+
+
+
+```{r}
+df <-read.csv("df.csv", header=TRUE)
+df$SP500_trend<- ifelse(df$SP500_rate > 0, 1, 0)
+#df$SP500_trend<- ifelse(df$SP500_rate> 0.003, 1, ifelse(df$SP500_rate < -0.003, -1, 0))
+
+df <- df[, c(2:7,16)]
+#df <- df[, c(9:13,15:16)]
+#df$date<- as.Date(df$date)
+df <- df[-1, ]
+df$SP500_trend <- factor(df$SP500_trend)
+#df <- subset(df, date < as.Date("2020-01-01"))
+df
+#df <- select(df,1:8)
+
+#df$cpi <- as.integer(df$cpi)
+#df$unemployment <- as.integer(df$unemployment)
+#df$fund_rate <- as.integer(df$fund_rate)
+#df$gdp <- as.integer(df$gdp)
+#df$SP500<- as.integer(df$SP500)
+
+#df<- select(df,-1)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+## Random forest
+
+```{r}
+# random forest
+library(randomForest)
+set.seed(4521)
+SP500RF <- randomForest(SP500_trend~., data=df)
+SP500RF
+
+
+```
+
+## LDA
+
+```{r}
+library(MASS)
+SP500lda <- lda(SP500_trend~., data=df, CV=TRUE)
+table(df$SP500_trend, SP500lda$class)
+```
+
+## QDA
+
+```{r}
+library(MASS)
+SP500qda <- qda(SP500_trend~., data=df, CV=TRUE)
+table(df$SP500_trend, SP500qda$class)
+```
+
+
+
+
+
+
