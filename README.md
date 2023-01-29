@@ -7,4 +7,4 @@ In countinous.rmd, I try to fit the model ,and random forest with samllest mse a
 
 In category.rmd, I try to indicate sp500 to 1 as rising, and 0 as declining, but the model did not fit well in random forest, lad and qda.
 
-![image caption](predict trend by linear regeression.jpg)
+
