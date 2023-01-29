@@ -44,22 +44,48 @@ df <- df[,-1]
 #df <- df[,-8]
 df
 ```
+# Fitting figure 
 
 ```{r}
 model <- lm(SP500~.,data=df)
 summary(model)
-yhat <- predict(model,newdata=df)
-df1$yhat <- yhat
+lm_predict <- predict(model,newdata=df)
+df1$lm_predict  <- lm_predict 
 
 ```
 
+```{r}
+# random forest
+set.seed(571)
+bodyRF <- randomForest(SP500~., data=df,importance=TRUE)
+bodyRF
+varImpPlot(bodyRF)
+
+rf_predict <- predict(bodyRF,newdata=df)
+df1$rf_predict  <- rf_predict 
+
+```
+
+## linear
 
 
 ```{r}
 ggplot() +
-  geom_line(data = df1, aes(x = date, y =SP500), color = "blue") +
-  geom_line(data = df1, aes(x = date, y = yhat), color = "red")
+  geom_line(data = df1, aes(x = date, y =SP500), color = "red") +
+  geom_line(data = df1, aes(x = date, y = lm_predict), color = "blue")
 ```
+## random forest--fitting quite well
+
+```{r}
+
+ggplot() +
+  geom_line(data = df1, aes(x = date, y =SP500), color = "red") +
+  geom_line(data = df1, aes(x = date, y = rf_predict), color = "green")
+```
+
+
+
+# compare mes with different models
 
 
 ## 1.Spliting Training and testing data 
