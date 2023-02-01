@@ -120,3 +120,25 @@ def get_df(save_path=data_store_path, input=""):
 def subset(df, start_time, end_time):
       selected_df = df[(df['date'] >= start_time) & (df['date'] <= end_time)]
       return selected_df
+
+def moving_average(df=None, MA=7):
+      """
+      Calculates the moving average of a given data frame.
+
+      Parameters:
+            df (pandas DataFrame, optional): The data frame to calculate the moving average on. 
+                  Default is None.
+            MA (int, optional): The moving average window size. Default is 7.
+
+      Returns:
+            pandas DataFrame: The original data frame with the added moving average column.
+      """
+      if df is None:
+            raise ValueError("df parameter must be provided")
+
+      # Calculate the moving average
+      MA_data = df.iloc[:, 1].rolling(window=MA).mean()
+      col_name = 'MA' + str(MA)
+      df[col_name] = MA_data
+
+      return df
