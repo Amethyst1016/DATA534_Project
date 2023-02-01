@@ -52,18 +52,38 @@ def generate_economic_indicators(api=apikey, save_path=data_store_path):
       print('Done')
 
 
-def generate_SP500_index(index='original', inter='1d', category='Close', save_path=data_store_path):
+def generate_SP500_index(index='original', interval='1d', category='Close', save_path=data_store_path):
       """
       Generates SP500 index data and saves it to a CSV file.
 
       Parameters:
-            index (str): SP500, SP500 - energy, SP500 - industry, SP500 - consumer
-            inter (str): 1d, 1wk, 1mo
-            category (str): Open, High, Low, Close, Adj Close, Volume
-            save_path (str): Path to the directory where the CSV file will be saved.
+            index (str, optional): The type of SP500 index to generate. 
+                  Options are:\n
+                  'original' = SP500 index\n
+                  'energy' = SP500 - energy sector index\n
+                  'industry' = SP500 - industry sector index\n
+                  'consumer' = SP500 - consumer sector index\n
+                  Default is 'original'.
+            interval (str, optional): The interval to download the data with. 
+                  Options are:\n
+                  '1d' = daily data\n
+                  '1wk' = weekly data\n
+                  '1mo' = monthly data\n
+                  Default is '1d'.\n
+            category (str, optional): The category of data to include in the data frame. 
+                  Options are:\n
+                  'Open'\n
+                  'High'\n
+                  'Low'\n
+                  'Close'\n
+                  'Adj Close'\n
+                  'Volume'\n
+                  Default is 'Close'.
+            save_path (str, optional): The path to the directory where the CSV file will be saved. 
+                  Default is None.
 
       Returns:
-            None
+            pandas DataFrame: The generated SP500 index data frame.
       """
       index_dict = {
             'original': '^GSPC',
@@ -74,19 +94,26 @@ def generate_SP500_index(index='original', inter='1d', category='Close', save_pa
 
       if index not in index_dict:
             raise ValueError(f"Invalid index value. Expected one of {list(index_dict.keys())}, got {index}")
-      
+
       symbol = index_dict[index]
-      df = yf.download([symbol], group_by='ticker', interval=inter)
+      df = yf.download([symbol], group_by='ticker', interval=interval)
       df = df[[category]]
       df = df.reset_index()
-      file_path = f"{save_path}SP500_{index}.csv"
-      df.to_csv(file_path)
-      print(f"SP500 {index} data saved to {file_path}")
+      df = df.rename(columns = {"Date": "date"})
+      
+
+      if save_path is not None:
+            file_path = save_path+ 'SP500_'+ index + ".csv"
+            df.to_csv(file_path,index=False)
+            # print(f"SP500 {index} data saved to {file_path}")
+            print("SP500 - " + index + " data saved")
+      return df
+
 
             
 def get_df(save_path=data_store_path, input=""):
       """
-      Get a dataframe from the specified file.
+      Get a data frame from the specified file.
       
       Accepted input file formats:
             cpi_monthly\n
@@ -98,28 +125,45 @@ def get_df(save_path=data_store_path, input=""):
             fundrate_month\n
             retail - month\n
             durables - month\n
-            SP500 - daily\n
-            SP500_sector_energy - daily\n
-            SP500_sector_industry - daily\n
-            SP500_sector_consumer - daily\n
+            SP500_original - daily\n
+            SP500_energy - daily\n
+            SP500_industry - daily\n
+            SP500_consumer - daily\n
             
       Args:
             save_path (str, optional): Path to the data store. Defaults to `data_store_path`.
             input (str, optional): The file name to load.
             
       Returns:
-            pd.DataFrame: Dataframe loaded from the specified file.
+            pd.DataFrame: Data frame loaded from the specified file.
       """
       # choice = input("Which file do you want: ")
 
-      df = pd.read_csv(save_path + input + '.csv')
+      df = pd.read_csv(save_path + input + '.csv', index_col=False)
       # import pandas as pd
       df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
       return df
 
 def subset(df, start_time, end_time):
+      """
+      Subset a data frame based on a specified time range.
+
+      Parameters:
+            df (pandas.DataFrame): The data frame to subset.
+            start_time (str): The start time in the format 'YYYY-MM-DD' or 'YYYY-MM'.
+            end_time (str): The end time in the format 'YYYY-MM-DD' or 'YYYY-MM'.
+
+      Returns:
+            pandas.DataFrame: The subset of the data frame.
+      """
+      # Check if the data frame has a column named 'date'
+      if 'date' not in df.columns:
+            raise ValueError("Input data frame does not have a 'date' column.")
+      
+      # Subset the data frame based on the specified time range
       selected_df = df[(df['date'] >= start_time) & (df['date'] <= end_time)]
       return selected_df
+
 
 def moving_average(df=None, MA=7):
       """
@@ -137,8 +181,7 @@ def moving_average(df=None, MA=7):
             raise ValueError("df parameter must be provided")
 
       # Calculate the moving average
-      MA_data = df.iloc[:, 1].rolling(window=MA).mean()
+      MA_data = df.loc[:, 1].rolling(window=MA).mean()
       col_name = 'MA' + str(MA)
       df[col_name] = MA_data
-
       return df
