@@ -1,66 +1,86 @@
-# find numeric_cols
-def numeric_cols(df):
-    numeric_cols=df.select_dtypes('number').columns.tolist()
+import pandas as pd
+import altair as alt
+import seaborn as sns
+
+def get_numeric_cols(df):
+    """
+    Parameters:
+        df: input dataframe
+    
+    Return: 
+        list of name of numeric columns in df
+    """
+    numeric_cols = df.select_dtypes('number').columns.tolist()
     return numeric_cols
 
-
-
-
-# draw time trend plot
-
-## lst means a list including the column name you want to choose
-## for the whole years
-def time_series_trend (lst,df):
+def time_series_trend(df, lst, start_date=None, end_date=None):
+    """
+    Parameters:
+        df: input dataframe
+        lst: list of column name in df
+        start_date (optional): if want to check trend of a range of time, specify start date of the range
+        end_date (optional): if want to check trend of a range of time, specify end date of the range
+    
+    Returen:
+        time trend plot (altair)
+    """
+    if start_date and end_date:
+        df = df[(df['date']>=start_date) & (df['date']<=end_date)]
     chart=alt.Chart(df).mark_line(interpolate='monotone').encode(
-       x=alt.X("date",axis=None),
-       y=alt.Y(alt.repeat(),type="quantitative",scale=alt.Scale(zero=False))
-       ).properties(width=300,height=300).repeat(repeat=lst)
-    chart.show()
+       alt.X('date'),
+       alt.Y(alt.repeat(),type='quantitative',scale=alt.Scale(zero=False))
+    ).repeat(repeat=lst)
+    return chart
+       
+def boxplot_year(df, lst, years=None):
+    """
+    Parameters:
+        df: input dataframe
+        lst: list of column name in df
+        years (optional): if want to check boxplot of some years, specify the list of year
     
-## for the specific years    
-def time_series_trend_year (lst,df,start_year, end_year):
-    chart=alt.Chart(df.loc[(df["date"].dt.year <=end_year) & (df["date"].dt.year >= start_year), :]).mark_line(interpolate='monotone').encode(
-       x=alt.X("date"),
-       y=alt.Y(alt.repeat(),type="quantitative",scale=alt.Scale(zero=False))
-       ).properties(width=300,height=300).repeat(repeat=lst)
-    chart.show()
-    
-    
-    
-# draw boxplot    
-def boxplot(lst,df,start_year, end_year):
-    dfboxplot = df.copy()
-    dfboxplot['year'] = pd.to_datetime(dfboxplot['date']).dt.year
-    chart=alt.Chart(dfboxplot.loc[(dfboxplot["year"] <=end_year) & (dfboxplot["year"]>= start_year), :]).mark_boxplot().encode(
-        alt.Y("year:O"),
+    Returen:
+        boxplot (altair)
+    """
+    if years:
+        df = df[df['date'].dt.year.isin(years)]
+    chart=alt.Chart(df).mark_boxplot().encode(
+        alt.Y("year(date):N"),
         alt.X(alt.repeat(),type="quantitative",scale=alt.Scale(zero=False)),
         alt.Tooltip('Title:N')
-        ).properties(width=500, height=500).repeat(repeat=lst)
-    chart.show()
-    
-    
+        ).repeat(repeat=lst)
+    return chart
 
-# draw corrlation--a scatterplot matrix (SPLOM)
-def scatterplot_matrix(numeric_cols):
-    chart=alt.Chart(df).mark_point(opacity=0.5,size=2).encode(
-       alt.X(alt.repeat('column'),type="quantitative",scale=alt.Scale(zero=False)),
-       alt.Y(alt.repeat('row'),type="quantitative",scale=alt.Scale(zero=False))
-       ).properties(height=150,width=150).repeat(row=numeric_cols,column=numeric_cols
-       ).configure_axis(titleFontSize=15,labelFontSize=5)
-    chart.show()
+def correlation_scatter(df):
+    """
+    Parameters:
+        df: input dataframe containing all indices
+    
+    Returen:
+        correlation scatter plot (seaborn)
+    """
+    return sns.pairplot(df)
 
+def correlation_heatmap(df):
+    """
+    Parameters:
+        df: input dataframe containing all indices
     
-      
-        
-# draw corrlation--correlation_plot
-def correlation_plot(numeric_cols):
-    corr_df = df[numeric_cols].corr("spearman").stack().reset_index(name='corr')
-    chart=alt.Chart(corr_df).mark_rect().encode(
-    alt.X('level_0:N',title=None),
-    alt.Y('level_1:N',title=None),
-    color='corr:Q'
-    ).properties(width=200,height=200)
-    chart.show()
-    
-
-    
+    Returen:
+        correlation heatmap plot (altair)
+    """
+    corr_df = df.corr("spearman").stack().reset_index(name='corr')
+    corr_df['corr'] = corr_df['corr'].apply(lambda x: round(x,2))
+    base=alt.Chart(corr_df).encode(
+        alt.X('level_0:N',title=None),
+        alt.Y('level_1:N',title=None)
+    ).properties(width=200, height=200)
+    chart=base.mark_rect().encode(color='corr:Q')
+    text=base.mark_text(baseline='middle').encode(
+        text='corr:Q',
+        color=alt.condition(
+            alt.datum.corr > 0,
+            alt.value('white'),
+            alt.value('black'))
+    )
+    return chart + text
