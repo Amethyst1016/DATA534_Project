@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 
 class LinearModel:
-    
     """
     A class to perform linear regression.
 
@@ -25,14 +24,10 @@ class LinearModel:
     get_summary():
         Obtain MSE, coefficients, intercept, residuals, equation, and R-Squared.
         Return a dictionary containing all coefficients.
-        
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
-        
     """
 
-    
-    
     def __init__(self, df, X_col, y_col, test_size):
         self.df = df
         self.n = round(len(self.df)*test_size)
@@ -78,9 +73,6 @@ class LinearModel:
         df_true['type'] = 'true value'
         return pd.concat([df_true, df_prediction], ignore_index=True)
 
-    
-    
-    
 class RfModel:
     """
     A class to perform random forest regression.
