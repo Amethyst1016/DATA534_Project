@@ -23,7 +23,7 @@ class LinearModel:
     -------
     get_summary():
         Obtain MSE, coefficients, intercept, residuals, equation, and R-Squared.
-        Return a dictionary containing all coefficents.
+        Return a dictionary containing all coefficients.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
     get_parameters():
@@ -100,8 +100,8 @@ class RfModel:
     Methods
     -------
     get_summary():
-        Obtain MSE, feature importances, residuals, and R-Squared.
-        Return a dictionary containing all coefficents.
+        Obtain MSE, feature importance, residuals, and R-Squared.
+        Return a dictionary containing all coefficients.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
    get_parameters():

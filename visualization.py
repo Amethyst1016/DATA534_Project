@@ -1,7 +1,5 @@
 import altair as alt
 from model import *
-import numpy as np
-import math
 
 def compare(models, x, y):
     """
