@@ -1,0 +1,5 @@
+A smaller MSE value means that the model's predictions are on average closer to the true values, which suggests that the model has a better fit to the data.
+
+In a linear regression model, the magnitude of the coefficients can be used as an indicator of the importance of a variable. A larger absolute coefficient value means that the variable has a stronger association with the target variable.
+
+In a random forest model, you can use feature importance measures to determine the relative importance of each feature. MDA(Mean Decrease Accuracy) measure calculates the decrease in accuracy when a feature is randomly permuted. A higher decrease in accuracy indicates that a feature is more important in predicting the target variable.
