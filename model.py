@@ -1,3 +1,4 @@
+
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
@@ -71,7 +72,7 @@ class LinearModel:
         df_prediction['type'] = f'{model}_prediction'
         df_true['type'] = 'true value'
         return pd.concat([df_true, df_prediction], ignore_index=True)
-        
+
 class RfModel:
     """
     A class to perform random forest regression.
