@@ -1,5 +1,5 @@
-
 import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
@@ -26,6 +26,8 @@ class LinearModel:
         Return a dictionary containing all coefficients.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
+    get_parameters():
+        Return a dataframe of variables and coefficients ordered by absolute value.
     """
 
     def __init__(self, df, X_col, y_col, test_size):
@@ -72,7 +74,14 @@ class LinearModel:
         df_prediction['type'] = f'{model}_prediction'
         df_true['type'] = 'true value'
         return pd.concat([df_true, df_prediction], ignore_index=True)
-
+    
+    def get_parameters(self):
+        indices = pd.DataFrame(self.X_col, columns=['indices'])
+        coefs = pd.DataFrame(self.coef[0], columns=['coefficient'])
+        params = pd.concat([indices, coefs], axis=1)
+        order = np.argsort(abs(coefs)['coefficient'])
+        return params.reindex(order).reset_index(drop=True)
+        
 class RfModel:
     """
     A class to perform random forest regression.
@@ -95,11 +104,14 @@ class RfModel:
         Return a dictionary containing all coefficients.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
+   get_parameters():
+        Return a dataframe of variables and coefficients ordered by absolute value.
     """
     def __init__(self, df, X_col, y_col, test_size):
         self.df = df
         self.n = round(len(self.df)*test_size)
-        self.X = self.df[X_col]
+        self.X_col = X_col
+        self.X = self.df[self.X_col]
         self.y_col = y_col
         self.y = self.df[[self.y_col]]
         self.X_train = self.X.iloc[self.n:,:]
@@ -128,3 +140,10 @@ class RfModel:
         df_true = self.df[['date',self.y_col]]
         df_true['type'] = 'true value'
         return pd.concat([df_true, df_prediction], ignore_index=True)
+    
+    def get_parameters(self):
+        indices = pd.DataFrame(self.X_col, columns=['indices'])
+        coefs = pd.DataFrame(self.feature_importances.tolist(), columns=['coefficient'])
+        params = pd.concat([indices, coefs], axis=1)
+        order = np.argsort(abs(coefs)['coefficient'])
+        return params.reindex(order).reset_index(drop=True)
