@@ -23,7 +23,7 @@ class LinearModel:
     -------
     get_summary():
         Obtain MSE, coefficients, intercept, residuals, equation, and R-Squared.
-        Return a dictionary containing all coefficients.
+        Return a dictionary containing all coefficents.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
     get_parameters():
@@ -76,9 +76,9 @@ class LinearModel:
         return pd.concat([df_true, df_prediction], ignore_index=True)
     
     def get_parameters(self):
-        indices = pd.DataFrame(self.X_col, columns=['indices'])
+        variables = pd.DataFrame(self.X_col, columns=['variable'])
         coefs = pd.DataFrame(self.coef[0], columns=['coefficient'])
-        params = pd.concat([indices, coefs], axis=1)
+        params = pd.concat([variables, coefs], axis=1)
         order = np.argsort(abs(coefs)['coefficient'])
         return params.reindex(order).reset_index(drop=True)
         
@@ -100,8 +100,8 @@ class RfModel:
     Methods
     -------
     get_summary():
-        Obtain MSE, feature importance, residuals, and R-Squared.
-        Return a dictionary containing all coefficients.
+        Obtain MSE, feature importances, residuals, and R-Squared.
+        Return a dictionary containing all coefficents.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
    get_parameters():
@@ -142,8 +142,8 @@ class RfModel:
         return pd.concat([df_true, df_prediction], ignore_index=True)
     
     def get_parameters(self):
-        indices = pd.DataFrame(self.X_col, columns=['indices'])
-        coefs = pd.DataFrame(self.feature_importances.tolist(), columns=['coefficient'])
-        params = pd.concat([indices, coefs], axis=1)
-        order = np.argsort(abs(coefs)['coefficient'])
+        variables = pd.DataFrame(self.X_col, columns=['variable'])
+        importances = pd.DataFrame(self.feature_importances.tolist(), columns=['importance'])
+        params = pd.concat([variables, importances], axis=1)
+        order = np.argsort(abs(importances)['importance'])
         return params.reindex(order).reset_index(drop=True)
