@@ -152,3 +152,4 @@ def moving_average(df, col, MA=7):
     col_name = 'MA' + str(MA) + '_' + col
     df[col_name] = MA_data
     return df
+#%%
