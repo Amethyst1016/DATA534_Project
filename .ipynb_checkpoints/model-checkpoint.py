@@ -5,7 +5,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 
 class LinearModel:
-    
     """
     A class to perform linear regression.
 
@@ -14,7 +13,7 @@ class LinearModel:
     df: Dataframe
         Input dataframe containing date, independent variables and dependent variable.
     X_col: List
-        The name of independent variables.
+        The list of independent variables.
     y_col: str
         The name of dependent variable.
     test_size: float
@@ -24,7 +23,9 @@ class LinearModel:
     -------
     get_summary():
         Obtain MSE, coefficients, intercept, residuals, equation, and R-Squared.
-        Return a dictionary containing all coefficients.
+        Return a dictionary containing all coefficents.
+    get_combined_df():
+        Return a dataframe with date, value of true and prediction, type of value.
     get_parameters():
         Return a dataframe of variables and coefficients ordered by absolute value.
     """
@@ -46,24 +47,16 @@ class LinearModel:
             self.simple = True
 
     def get_summary(self):
-        try:
-            self.mse = mean_squared_error(self.y_test, self.model.predict(self.X_test))
-            self.coef = self.model.coef_.tolist()
-            self.intercept = self.model.intercept_.tolist()
-            self.residuals = self.y_test - self.model.predict(self.X_test)
-            self.equation = self.y_col + ' = ' + str(self.intercept[0])
-            for i in range(len(self.coef)):
-                self.equation += ' + ' + str(self.coef[i][0]) + ' * ' + self.X_train.columns[i]
-            self.R_Squared = self.model.score(self.X_train, self.y_train)
-            return dict({'MSE': self.mse,
-                         'Coefficients': self.coef,
-                         'Intercept': self.intercept,
-                         'Residuals': self.residuals,
-                         'Equation': self.equation,
-                         'R-Squared': self.R_Squared})
-        except Exception as e:
-            print("An error occurred:", e)
-            return None
+        self.mse = mean_squared_error(self.y_test, self.model.predict(self.X_test))
+        self.coef = self.model.coef_.tolist()
+        self.intercept = self.model.intercept_.tolist()
+        self.residuals = self.y_test - self.model.predict(self.X_test)
+        self.equation = self.y_col + ' = ' + str(self.intercept[0])
+        for i in range(len(self.coef)):
+            self.equation += ' + ' + str(self.coef[i][0]) + ' * ' + self.X_train.columns[i]
+        self.R_Squared = self.model.score(self.X_train, self.y_train)
+        return dict({'MSE': self.mse, 'Coefficients': self.coef, 'Intercept': self.intercept, 'Residuals': self.residuals, 
+                     'Equation': self.equation, 'R-Squared': self.R_Squared})
     
     def get_combined_df(self, model='LinearModel'):
         if self.simple:
