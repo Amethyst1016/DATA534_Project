@@ -61,33 +61,71 @@ class LinearModel:
                          'Residuals': self.residuals,
                          'Equation': self.equation,
                          'R-Squared': self.R_Squared})
-        except Exception as e:
+        except ValueError as e:
             print("An error occurred:", e)
             return None
+        except TypeError as e:
+            print("An error occurred:", e)
+            return None
+        except AttributeError as e:
+            print("An error occurred:", e)
+            return None
+        except RuntimeError as e:
+            print("An error occurred:", e)
+            return None
+
+
     
     def get_combined_df(self, model='LinearModel'):
-        if self.simple:
-            df_prediction = self.df[['date',self.X_col[0]]]
-            df_true = self.df[['date',self.X_col[0], self.y_col]]
-        else:
-            df_prediction = self.df[['date']]
-            df_true = self.df[['date',self.y_col]]
-        prediction = []
-        for i in self.model.predict(self.X_test):
-            prediction.append(i[0])
-        for i in self.model.predict(self.X_train):
-            prediction.append(i[0])
-        df_prediction[self.y_col] = prediction
-        df_prediction['type'] = f'{model}_prediction'
-        df_true['type'] = 'true value'
-        return pd.concat([df_true, df_prediction], ignore_index=True)
+        try:
+            if self.simple:
+                df_prediction = self.df[['date',self.X_col[0]]]
+                df_true = self.df[['date',self.X_col[0], self.y_col]]
+            else:
+                df_prediction = self.df[['date']]
+                df_true = self.df[['date',self.y_col]]
+            prediction = []
+            for i in self.model.predict(self.X_test):
+             prediction.append(i[0])
+            for i in self.model.predict(self.X_train):
+                prediction.append(i[0])
+            df_prediction[self.y_col] = prediction
+            df_prediction['type'] = f'{model}_prediction'
+            df_true['type'] = 'true value'
+            return pd.concat([df_true, df_prediction], ignore_index=True)
+        except ValueError as e:
+            print("An error occurred:", e)
+            return None
+        except TypeError as e:
+            print("An error occurred:", e)
+            return None
+        except AttributeError as e:
+            print("An error occurred:", e)
+            return None
+        except RuntimeError as e:
+            print("An error occurred:", e)
+            return None
+
     
     def get_parameters(self):
-        variables = pd.DataFrame(self.X_col, columns=['variable'])
-        coefs = pd.DataFrame(self.coef[0], columns=['coefficient'])
-        params = pd.concat([variables, coefs], axis=1)
-        order = np.argsort(abs(coefs)['coefficient'])
-        return params.reindex(order).reset_index(drop=True)
+        try:
+            variables = pd.DataFrame(self.X_col, columns=['variable'])
+            coefs = pd.DataFrame(self.coef[0], columns=['coefficient'])
+            params = pd.concat([variables, coefs], axis=1)
+            order = np.argsort(abs(coefs)['coefficient'])
+            return params.reindex(order).reset_index(drop=True)
+        except ValueError as e:
+            print("An error occurred:", e)
+            return None
+        except TypeError as e:
+            print("An error occurred:", e)
+            return None
+        except AttributeError as e:
+            print("An error occurred:", e)
+            return None
+        except RuntimeError as e:
+            print("An error occurred:", e)
+            return None
         
 class RfModel:
     """
@@ -98,7 +136,7 @@ class RfModel:
     df: Dataframe
         Input dataframe containing date, independent variables and dependent variable.
     X_col: List
-        The list of independent variables.
+        The name of independent variables.
     y_col: str
         The name of dependent variable.
     test_size: float
@@ -107,12 +145,12 @@ class RfModel:
     Methods
     -------
     get_summary():
-        Obtain MSE, feature importances, residuals, and R-Squared.
-        Return a dictionary containing all coefficents.
+        Obtain MSE, feature importance, residuals, and R-Squared.
+        Return a dictionary containing all coefficients.
     get_combined_df():
         Return a dataframe with date, value of true and prediction, type of value.
    get_parameters():
-        Return a dataframe of variables and coefficients ordered by absolute value.
+        Return a dataframe of feature importance ordered by absolute value.
     """
     def __init__(self, df, X_col, y_col, test_size):
         self.df = df
@@ -128,29 +166,69 @@ class RfModel:
         self.model = RandomForestRegressor().fit(self.X_train, self.y_train)
 
     def get_summary(self):
-        self.mse = mean_squared_error(self.y_test, self.model.predict(self.X_test))
-        self.feature_importances = self.model.feature_importances_
-        self.residuals = self.y_test - self.model.predict(self.X_test).reshape(self.n,1)
-        self.R_Squared = self.model.score(self.X_train, self.y_train)
-        return dict({'MSE': self.mse, 'Feature importances': self.feature_importances, 'Residuals': self.residuals, 
-                     'R-Squared': self.R_Squared})
+        try:
+            self.mse = mean_squared_error(self.y_test, self.model.predict(self.X_test))
+            self.feature_importances = self.model.feature_importances_
+            self.residuals = self.y_test - self.model.predict(self.X_test).reshape(self.n,1)
+            self.R_Squared = self.model.score(self.X_train, self.y_train)
+            return dict({'MSE': self.mse, 'Feature importances': self.feature_importances, 'Residuals': self.residuals,
+                         'R-Squared': self.R_Squared})
+        except ValueError as e:
+            print("An error occurred:", e)
+            return None
+        except TypeError as e:
+            print("An error occurred:", e)
+            return None
+        except AttributeError as e:
+            print("An error occurred:", e)
+            return None
+        except RuntimeError as e:
+            print("An error occurred:", e)
+            return None
     
     def get_combined_df(self, model='RandomForest'):
-        df_prediction = self.df[['date']]
-        prediction = []
-        for i in self.model.predict(self.X_test).reshape(self.n,1):
-            prediction.append(i[0])
-        for i in self.model.predict(self.X_train).reshape(len(self.df) - self.n,1):
-            prediction.append(i[0])
-        df_prediction[self.y_col] = prediction
-        df_prediction['type'] = f'{model}_prediction'
-        df_true = self.df[['date',self.y_col]]
-        df_true['type'] = 'true value'
-        return pd.concat([df_true, df_prediction], ignore_index=True)
+        try:
+            df_prediction = self.df[['date']]
+            prediction = []
+            for i in self.model.predict(self.X_test).reshape(self.n,1):
+                prediction.append(i[0])
+            for i in self.model.predict(self.X_train).reshape(len(self.df) - self.n,1):
+                prediction.append(i[0])
+            df_prediction[self.y_col] = prediction
+            df_prediction['type'] = f'{model}_prediction'
+            df_true = self.df[['date',self.y_col]]
+            df_true['type'] = 'true value'
+            return pd.concat([df_true, df_prediction], ignore_index=True)
+        except ValueError as e:
+            print("An error occurred:", e)
+            return None
+        except TypeError as e:
+            print("An error occurred:", e)
+            return None
+        except AttributeError as e:
+            print("An error occurred:", e)
+            return None
+        except RuntimeError as e:
+            print("An error occurred:", e)
+            return None
+
     
     def get_parameters(self):
-        variables = pd.DataFrame(self.X_col, columns=['variable'])
-        importances = pd.DataFrame(self.feature_importances.tolist(), columns=['importance'])
-        params = pd.concat([variables, importances], axis=1)
-        order = np.argsort(abs(importances)['importance'])
-        return params.reindex(order).reset_index(drop=True)
+        try:
+            variables = pd.DataFrame(self.X_col, columns=['variable'])
+            importances = pd.DataFrame(self.feature_importances.tolist(), columns=['importance'])
+            params = pd.concat([variables, importances], axis=1)
+            order = np.argsort(abs(importances)['importance'])
+            return params.reindex(order).reset_index(drop=True)
+        except ValueError as e:
+            print("An error occurred:", e)
+            return None
+        except TypeError as e:
+            print("An error occurred:", e)
+            return None
+        except AttributeError as e:
+            print("An error occurred:", e)
+            return None
+        except RuntimeError as e:
+            print("An error occurred:", e)
+            return None
