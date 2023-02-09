@@ -45,6 +45,27 @@ class LinearModel:
         if len(X_col) == 1:
             self.simple = True
 
+        if not type(self.df) == pd.core.frame.DataFrame:
+            raise TypeError('df must be a dataframe.')
+        if not type(self.X_col) == list:
+            raise TypeError('X_col must be a list.')
+        if not type(self.y_col) == str:
+            raise TypeError('y_col must be a string.')
+        if not type(test_size) == float:
+            raise TypeError('test_size must be a float.')
+        if not 0 < test_size < 1:
+            raise ValueError('test_size must be between 0 and 1.')
+        if not self.X_col:
+            raise ValueError('X_col must not be empty.')
+        if not self.y_col:
+            raise ValueError('y_col must not be empty.')
+        if not self.X_col[0] in self.df.columns:
+            raise ValueError('X_col must be in df.')
+        if not self.y_col in self.df.columns:
+            raise ValueError('y_col must be in df.')
+
+
+
     def get_summary(self):
         try:
             self.mse = mean_squared_error(self.y_test, self.model.predict(self.X_test))
@@ -86,7 +107,7 @@ class LinearModel:
                 df_true = self.df[['date',self.y_col]]
             prediction = []
             for i in self.model.predict(self.X_test):
-             prediction.append(i[0])
+                prediction.append(i[0])
             for i in self.model.predict(self.X_train):
                 prediction.append(i[0])
             df_prediction[self.y_col] = prediction
@@ -165,6 +186,25 @@ class RfModel:
         self.y_test = self.y.iloc[:self.n,:]
         self.model = RandomForestRegressor().fit(self.X_train, self.y_train)
 
+        if not type(self.df) == pd.core.frame.DataFrame:
+            raise TypeError('df must be a dataframe.')
+        if not type(self.X_col) == list:
+            raise TypeError('X_col must be a list.')
+        if not type(self.y_col) == str:
+            raise TypeError('y_col must be a string.')
+        if not type(test_size) == float:
+            raise TypeError('test_size must be a float.')
+        if not 0 < test_size < 1:
+            raise ValueError('test_size must be between 0 and 1.')
+        if not self.X_col:
+            raise ValueError('X_col must not be empty.')
+        if not self.y_col:
+            raise ValueError('y_col must not be empty.')
+        if not self.X_col[0] in self.df.columns:
+            raise ValueError('X_col must be in df.')
+        if not self.y_col in self.df.columns:
+            raise ValueError('y_col must be in df.')
+
     def get_summary(self):
         try:
             self.mse = mean_squared_error(self.y_test, self.model.predict(self.X_test))
@@ -232,3 +272,4 @@ class RfModel:
         except RuntimeError as e:
             print("An error occurred:", e)
             return None
+#%%
