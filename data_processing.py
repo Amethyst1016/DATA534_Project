@@ -8,15 +8,73 @@ import os
 apikey = 'O6LFU5LE4ZVYXL1H'
 
 def convert_js_to_df(data):
-    df = pd.json_normalize(data['data'])
-    # Convert the 'date' column into a datetime object
-    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+    """Convert a JSON object to a Pandas DataFrame
 
-    # Convert the 'value' column into a float
-    df['value'] = pd.to_numeric(df['value'])
-    return df
+    Args:
+        data (dict): The JSON object to be converted to a Pandas DataFrame. \n
+        The structure of the JSON object should contain a key named "data" which holds the data to be normalized.
+        
+    Returns:
+        pandas.DataFrame: A Pandas DataFrame containing the normalized data from the JSON object.\n
+        The "date" column is converted to a datetime object and the "value" column is converted to a float.
+
+    Example:
+        data = {
+            "data": [
+                {"date": "2021-01-01", "value": 1.0},
+                {"date": "2021-01-02", "value": 2.0},
+                {"date": "2021-01-03", "value": 3.0}
+            ]
+        }
+        df = convert_js_to_df(data)
+        print(df)
+        
+        Output:
+            date  value
+        0 2021-01-01    1.0
+        1 2021-01-02    2.0
+        2 2021-01-03    3.0
+    """
+    try:
+        df = pd.json_normalize(data['data'])
+        # Convert the 'date' column into a datetime object
+        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+
+        # Convert the 'value' column into a float
+        df['value'] = pd.to_numeric(df['value'])
+        return df
+    except KeyError as ke:
+        print("An error occurred: The key 'data' was not found in the input")
+        return None
+    except ValueError as ve:
+        print("An error occurred: The value in the 'date' or 'value' column could not be converted")
+        return None
+    except Exception as e:
+        print("An error occurred:", e)
+        return None
 
 def generate_economic_indicators(api=apikey):
+    """
+    Summary:
+        This function generates economic indicators csv files using Alphavantage API.
+
+    Args:
+        api (str, optional): The API key provided by Alphavantage. \n
+        Defaults to apikey.
+
+    Returns:
+        None: This function saves the generated csv files to a folder named "data" in the current working directory. \n
+        The function also prints the names of generated csv files and the path of the "data" folder.
+        
+    Example:
+        generate_economic_indicators()
+        
+        Output:
+            cpi_month.csv is set\n
+            cpi_semiannual.csv is set\n
+            ......\n
+            All csv files are stored in ~/DATA534_Project/data
+    """
     end = '&apikey='+api
     
     # monthly and semiannual CPI
@@ -49,17 +107,24 @@ def generate_economic_indicators(api=apikey):
     for i in indicator_dict:
         name = i
         url = indicator_dict[i]
-        r = requests.get(url)
-        data = r.json()
-        df = convert_js_to_df(data)
-        df = df.rename(columns={'value': i})
-        
-        if not os.path.exists(os.getcwd()+'/data'):
-            os.makedirs(os.getcwd()+'/data')
-        df.to_csv('data/'+name+'.csv', index=False)
-        
-        print(name+'.csv is set')
-        time.sleep(10)
+        try:
+            r = requests.get(url)
+            data = r.json()
+            df = convert_js_to_df(data)
+            df = df.rename(columns={'value': i})
+            
+            if not os.path.exists(os.getcwd()+'/data'):
+                os.makedirs(os.getcwd()+'/data')
+            df.to_csv('data/'+name+'.csv', index=False)
+            
+            print(name+'.csv is set')
+            time.sleep(10)
+        except requests.exceptions.RequestException as e:
+            print("An error occurred while sending the request to retrieve", name, ":", e)
+        except ValueError as e:
+            print("An error occurred while parsing the JSON data for", name, ":", e)
+        except Exception as e:
+            print("An error occurred while generating", name, ":", e)
     print('All csv files are stored in', os.getcwd()+'/data')
 
 def generate_SP500_index(index='original', interval='1d', category='Close'):
@@ -126,13 +191,21 @@ def subset(df, start_time, end_time):
     Returns:
         pandas.DataFrame: The subset of the data frame.
     """
+    try:
     # Check if the data frame has a column named 'date'
-    if 'date' not in df.columns:
-        raise ValueError("Input data frame does not have a 'date' column.")
+        if 'date' not in df.columns:
+            raise ValueError("Input data frame does not have a 'date' column.")
 
-    # Subset the data frame based on the specified time range
-    selected_df = df[(df['date'] >= start_time) & (df['date'] <= end_time)]
-    return selected_df
+        # Subset the data frame based on the specified time range
+        selected_df = df[(df['date'] >= start_time) & (df['date'] <= end_time)]
+        return selected_df
+    except KeyError as ke:
+        print("KeyError:", str(ke))
+    except TypeError as te:
+        print("TypeError:", str(te))
+    except Exception as e:
+        print("An error occurred while subsetting the data frame:", str(e))
+
 
 
 def moving_average(df, col, MA=7):
@@ -148,8 +221,14 @@ def moving_average(df, col, MA=7):
         pandas DataFrame: The original data frame with the added moving average column.
     """
 
-    MA_data = df[col].rolling(window=MA).mean()
-    col_name = 'MA' + str(MA) + '_' + col
-    df[col_name] = MA_data
-    return df
-#%%
+    try:
+        MA_data = df[col].rolling(window=MA).mean()
+        col_name = 'MA' + str(MA) + '_' + col
+        df[col_name] = MA_data
+        return df
+    except KeyError:
+        raise KeyError("The input data frame does not have a column named '" + col + "'.")
+    except ValueError:
+        raise ValueError("The window size for the moving average must be an integer greater than 0.")
+    except TypeError:
+        raise TypeError("The window size for the moving average must be a numerical type.")
