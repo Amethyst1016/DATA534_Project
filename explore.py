@@ -10,6 +10,8 @@ def get_numeric_cols(df):
     Return: 
         list of name of numeric columns in df
     """
+    if type(df) != pd.DataFrame:
+        raise TypeError(f'pd.DataFrame expected but got {type(df)}')
     numeric_cols = df.select_dtypes('number').columns.tolist()
     return numeric_cols
 
@@ -24,6 +26,10 @@ def time_series_trend(df, lst, start_date=None, end_date=None):
     Returen:
         time trend plot (altair)
     """
+    if type(df) != pd.DataFrame:
+        raise TypeError(f'pd.DataFrame expected but got {type(df)}')
+    if type(lst) != list:
+        raise TypeError(f'list expected but got {type(lst)}')
     if start_date and end_date:
         df = df[(df['date']>=start_date) & (df['date']<=end_date)]
     chart=alt.Chart(df).mark_line(interpolate='monotone').encode(
@@ -42,6 +48,10 @@ def boxplot_year(df, lst, years=None):
     Returen:
         boxplot (altair)
     """
+    if type(df) != pd.DataFrame:
+        raise TypeError(f'pd.DataFrame expected but got {type(df)}')
+    if type(lst) != list:
+        raise TypeError(f'list expected but got {type(lst)}')
     if years:
         df = df[df['date'].dt.year.isin(years)]
     chart=alt.Chart(df).mark_boxplot().encode(
@@ -59,6 +69,8 @@ def correlation_scatter(df):
     Returen:
         correlation scatter plot (seaborn)
     """
+    if type(df) != pd.DataFrame:
+        raise TypeError(f'pd.DataFrame expected but got {type(df)}')
     return sns.pairplot(df)
 
 def correlation_heatmap(df):
@@ -69,12 +81,14 @@ def correlation_heatmap(df):
     Returen:
         correlation heatmap plot (altair)
     """
+    if type(df) != pd.DataFrame:
+        raise TypeError(f'pd.DataFrame expected but got {type(df)}')
     corr_df = df.corr("spearman").stack().reset_index(name='corr')
     corr_df['corr'] = corr_df['corr'].apply(lambda x: round(x,2))
     base=alt.Chart(corr_df).encode(
         alt.X('level_0:N',title=None),
         alt.Y('level_1:N',title=None)
-    ).properties(width=200, height=200)
+    ).properties(width=250, height=250)
     chart=base.mark_rect().encode(color='corr:Q')
     text=base.mark_text(baseline='middle').encode(
         text='corr:Q',
